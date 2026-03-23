@@ -1,70 +1,378 @@
-# Getting Started with Create React App
+<div align="center">
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 🔐 Biometric App — Anti-Spoofing Face Recognition
 
-## Available Scripts
+**A full-stack biometric authentication system with real-time liveness detection.**  
+Secure. Fast. Spoof-resistant.
 
-In the project directory, you can run:
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.x-black?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![MUI](https://img.shields.io/badge/MUI-5-007FFF?logo=mui&logoColor=white)](https://mui.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-### `npm start`
+</div>
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📋 Table of Contents
 
-### `npm test`
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Running the App](#-running-the-app)
+- [API Reference](#-api-reference)
+- [Anti-Spoofing Details](#-anti-spoofing-details)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🧠 Overview
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**Biometric App** is a secure, full-stack face recognition authentication system built with a **React** frontend and a **Flask** backend. It combines deep learning-based face recognition with real-time **liveness detection** to prevent spoofing attacks — such as someone holding up a photo or video to deceive the system.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Users can register with their face, then log in using facial recognition alone. Every login attempt is first screened by anti-spoofing checks (blink detection and head movement analysis) before face matching is performed.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## ✨ Features
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Feature | Description |
+|---|---|
+| 🎭 **Face Registration** | Register users by capturing and encoding their face via webcam |
+| 🔑 **Face Login** | Authenticate users by comparing live face encodings against stored data |
+| 👁️ **Blink Detection** | Liveness check using Eye Aspect Ratio (EAR) to detect real blinks |
+| 🙆 **Head Movement Detection** | Liveness check that verifies natural head pose variation |
+| 🛡️ **Anti-Spoofing** | Multi-factor liveness pipeline rejects photos, videos, and masks |
+| 👤 **User Management** | View all registered users and delete accounts |
+| 📋 **Profile Management** | Retrieve and update user profile information |
+| 🌐 **React UI** | Responsive Material UI frontend with live webcam integration |
+| 🔄 **CORS-enabled API** | Flask backend with full CORS support for local development |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🏗️ Architecture
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser (React)                       │
+│                                                              │
+│  ┌──────────────┐   ┌────────────────┐   ┌───────────────┐  │
+│  │   Webcam      │   │  React Router  │   │  Material UI  │  │
+│  │  (capture)    │   │  (navigation)  │   │  (components) │  │
+│  └──────┬───────┘   └────────────────┘   └───────────────┘  │
+│         │  Base64 image via Axios (HTTP)                      │
+└─────────┼───────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Flask API (run.py)                        │
+│                                                              │
+│  POST /register      POST /login         GET /users          │
+│  GET  /profile       PUT  /profile       DELETE /delete_user │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │              Anti-Spoofing Pipeline                     │  │
+│  │  1. Blink Detection (EAR < 0.25 threshold)             │  │
+│  │  2. Head Movement Detection (pose angle analysis)      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │              Face Recognition Pipeline                  │  │
+│  │  face_recognition lib  ·  dlib 68-point landmarks      │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│                   user_data/users.json                       │
+└─────────────────────────────────────────────────────────────┘
+```
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🛠️ Tech Stack
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Backend
+| Technology | Purpose |
+|---|---|
+| **Python 3.8+** | Core runtime |
+| **Flask** | REST API server |
+| **Flask-CORS** | Cross-origin resource sharing |
+| **face_recognition** | Face encoding & matching (dlib-based) |
+| **dlib** | Facial landmark detection (68-point model) |
+| **OpenCV (cv2)** | Image processing |
+| **NumPy** | Numerical operations |
+| **imutils** | Face utility helpers |
+| **scipy** | Spatial distance calculations |
+| **Pillow (PIL)** | Image decoding |
 
-### Code Splitting
+### Frontend
+| Technology | Purpose |
+|---|---|
+| **React 18** | UI framework |
+| **React Router v6** | Client-side routing |
+| **Material UI (MUI v5)** | Component library |
+| **Axios** | HTTP client |
+| **react-webcam** | Webcam capture |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 📦 Prerequisites
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Make sure you have the following installed before proceeding:
 
-### Making a Progressive Web App
+- **Python 3.8+** — [Download](https://www.python.org/downloads/)
+- **Node.js 16+** and **npm** — [Download](https://nodejs.org/)
+- **CMake** (required to build dlib) — `sudo apt install cmake` or [cmake.org](https://cmake.org/)
+- A working **webcam**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+> **Note:** The `shape_predictor_68_face_landmarks.dat` model file is already included in this repository.
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🚀 Installation
 
-### Deployment
+### 1. Clone the repository
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+git clone https://github.com/RaptorBlingx/biometric-app-new.git
+cd biometric-app-new
+```
 
-### `npm run build` fails to minify
+### 2. Set up the Python backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+# Create and activate a virtual environment
+python -m venv venv
+
+# On Windows:
+.\venv\Scripts\activate
+
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install Python dependencies
+pip install flask flask-cors face_recognition dlib opencv-python numpy imutils scipy pillow
+```
+
+### 3. Set up the React frontend
+
+```bash
+# Navigate to the React app directory
+cd anti-spoofing-face-recognition
+
+# Install Node dependencies
+npm install
+```
+
+---
+
+## ▶️ Running the App
+
+You will need **two terminal windows** running simultaneously.
+
+### Terminal 1 — Flask Backend
+
+```bash
+# From the project root, with virtualenv activated
+python run.py
+```
+
+The Flask server will start at: **http://localhost:5000**
+
+### Terminal 2 — React Frontend
+
+```bash
+# From the anti-spoofing-face-recognition directory
+npm start
+```
+
+The React app will open at: **http://localhost:3000**
+
+---
+
+## 📡 API Reference
+
+All endpoints are served at `http://localhost:5000`.
+
+### `POST /register`
+
+Register a new user with their face.
+
+**Request Body:**
+```json
+{
+  "username": "john_doe",
+  "face_data": "data:image/jpeg;base64,..."
+}
+```
+
+**Responses:**
+| Status | Body |
+|---|---|
+| `200` | `{ "status": "User registered successfully" }` |
+| `400` | `{ "status": "User already exists" }` |
+
+---
+
+### `POST /login`
+
+Authenticate a user via face recognition (includes anti-spoofing checks).
+
+**Request Body:**
+```json
+{
+  "face_data": "data:image/jpeg;base64,..."
+}
+```
+
+**Responses:**
+| Status | Body |
+|---|---|
+| `200` | `{ "status": "Login successful", "username": "john_doe" }` |
+| `400` | `{ "status": "Spoofing detected" }` |
+| `400` | `{ "status": "Login failed" }` |
+
+---
+
+### `GET /users`
+
+Returns a list of all registered usernames and their stored face encodings.
+
+**Response:**
+```json
+[
+  { "username": "john_doe", "face_encoding": [ ... ] }
+]
+```
+
+---
+
+### `DELETE /delete_user`
+
+Delete a registered user by username.
+
+**Request Body:**
+```json
+{
+  "username": "john_doe"
+}
+```
+
+**Responses:**
+| Status | Body |
+|---|---|
+| `200` | `{ "status": "User deleted successfully" }` |
+| `400` | `{ "status": "Username is required" }` |
+
+---
+
+### `GET /profile`
+
+Retrieve the current user's profile.
+
+**Response:**
+```json
+{
+  "username": "john_doe",
+  "email": "john_doe@example.com"
+}
+```
+
+---
+
+### `PUT /profile`
+
+Update the current user's profile.
+
+**Request Body:**
+```json
+{
+  "username": "new_name",
+  "email": "new_email@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "Profile updated successfully"
+}
+```
+
+---
+
+## 🛡️ Anti-Spoofing Details
+
+The login pipeline enforces **two independent liveness checks** before any face matching is attempted. Both checks must pass or the request is rejected as a spoofing attempt.
+
+### 1. Blink Detection (Eye Aspect Ratio)
+
+The Eye Aspect Ratio (EAR) measures the openness of the eye using six facial landmark points:
+
+```
+EAR = (‖p2 − p6‖ + ‖p3 − p5‖) / (2 × ‖p1 − p4‖)
+```
+
+- When the eye is open, EAR is approximately **0.3**.
+- When the eye blinks, EAR drops sharply below **0.25**.
+- Both eyes are measured and averaged.
+
+A detected blink (EAR < 0.25) confirms the subject is a live person, not a static image.
+
+### 2. Head Movement Detection (Pose Angle)
+
+Using 68 facial landmark points from dlib, the system computes the vertical angle between the eye midpoint and the mouth center. If the angle falls within **±20°** of the frontal plane, it detects natural head movement — ruling out a flat, printed photo.
+
+### Why Two Checks?
+
+A single check can be bypassed (e.g., a video loop may contain blinks). Requiring both blink *and* pose verification significantly raises the difficulty of a spoofing attack.
+
+---
+
+## 📁 Project Structure
+
+```
+biometric-app-new/
+├── run.py                              # Flask backend (API + anti-spoofing logic)
+├── shape_predictor_68_face_landmarks.dat  # dlib 68-point landmark model
+├── how_to_run                          # Quick-start instructions
+├── package.json                        # React app metadata & scripts
+├── package-lock.json                   # Locked dependency tree
+├── .gitignore                          # Ignored files
+├── README.md                           # This file
+├── user_data/                          # Auto-created at runtime
+│   └── users.json                      # Registered user data (face encodings)
+└── anti-spoofing-face-recognition/     # React frontend source
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature/your-feature-name`
+3. Make your changes and commit: `git commit -m "feat: add your feature"`
+4. Push to your fork: `git push origin feature/your-feature-name`
+5. Open a Pull Request
+
+Please follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+Made with ❤️ by [RaptorBlingx](https://github.com/RaptorBlingx)
+
+</div>
